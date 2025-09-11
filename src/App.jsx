@@ -1,31 +1,12 @@
 import { useEffect, useState } from 'react';
-import { loadDatabaseFromCSV } from './db';
-import { searchPeople } from './utils/search';
+import "./App.css"
 
 function App() {
-  // const [rows, setRows] = useState([]);
-  // const [query, setQuery] = useState('');
-  // const [db, setDb] = useState(null);
-
-  // useEffect(() => {
-  //   const load = async () => {
-  //     const database = await loadDatabaseFromCSV('/data/people.csv');
-  //     setDb(database);
-  //     const res = database.exec('SELECT * FROM people');
-  //     if (res.length > 0) {
-  //       setRows(res[0].values);
-  //     }
-  //   };
-  //   load();
-  // }, []);
-
-  const handleSearch = (e) => {
-    const input = e.target.value;
-  };
-
+  // creation des states de PERSONS pour stocker les data et SEARCHPERSON pour chercher une personne
   const [persons, setPersons] = useState([])
-  const [test, setTest] = useState([1,2,3,4,4])
+  const [searchPerson, setSearchPerson] = useState();
 
+  // method permettant d'aller chercher des data
   async function loadData() {
     const response = await fetch("http://localhost:8080/persons/getAllPersons");
 
@@ -34,30 +15,35 @@ function App() {
     }
     const data = await response.json();
     setPersons(data)
-    console.log(data)
   }
-
-
-  // console.log(persons);
-  
 
   useEffect(() => {
     loadData()
   }, [])
 
+  // filter les data persons par la recherche du input
+  const personFilter = persons.filter( p => 
+    p.prenom.startsWith(searchPerson) || 
+    p.nom.startsWith(searchPerson) ||
+    p.email.startsWith(searchPerson) ||
+    p.genre.startsWith(searchPerson)
+  )
+  
+  console.log(personFilter)
+
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className='container'>
       <h1>Recherche dans la base de personnes</h1>
 
       <input
         type="text"
-        // value={query}
-        // onChange={handleSearch}
+        // stocker les élément pour cherche
+        onChange={(e) => setSearchPerson(e.target.value)}
         placeholder="Ex: PHI"
         style={{ padding: '0.5rem', width: '300px', fontSize: '1rem' }}
       />
 
-      <table border="1" cellPadding="5" style={{ marginTop: '1rem' }}>
+      <table  className='tableau' border="1" cellPadding="5" style={{ marginTop: '1rem'}}>
         <thead>
           <tr>
             <th>ID</th>
@@ -68,18 +54,33 @@ function App() {
           </tr>
         </thead>
         <tbody>
-          {persons.map((person) => (
-            <tr key={person.id}>
-              <td>{person.id}</td>
-              <td>{person.nom}</td>
-              {/* <td>{person.p}</td> */}
-              {/* <td>{person}</td>
-              <td>{email}</td>
-              <td>{genre}</td> */}
-              {/* <td>{person.genre}</td> */}
+          {
+            // si le personFilter est vide afficher la liste de persons
+            personFilter.length == 0 ?  
+            persons.map((person) => (
+              <tr key={person.id}>
+                <td>{person.id}</td>
+                <td>{person.nom}</td>
+                <td>{person["prenom"]}</td>
+                <td>{person["email"]}</td>
+                <td>{person["genre"]}</td>
 
-            </tr>
-          ))}
+              </tr>
+            ))
+
+            :
+
+            personFilter.map((person) => (
+              <tr key={person.id}>
+                <td>{person.id}</td>
+                <td>{person.nom}</td>
+                <td>{person["prenom"]}</td>
+                <td>{person["email"]}</td>
+                <td>{person["genre"]}</td>
+              </tr>
+            ))
+
+          }
 
         </tbody>
       </table>
